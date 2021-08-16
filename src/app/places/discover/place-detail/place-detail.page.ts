@@ -1,23 +1,31 @@
-import { Component, OnInit } from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
-import {ActionSheetController, ModalController, NavController} from '@ionic/angular';
-import {CreateBookingComponent} from '../../../booking/create-booking/create-booking.component';
-import {Place} from '../../place.model';
-import {PlacesService} from '../../places.service';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import {
+  NavController,
+  ModalController,
+  ActionSheetController
+} from '@ionic/angular';
+import { Subscription } from 'rxjs';
+
+import { PlacesService } from '../../places.service';
+import { Place } from '../../place.model';
+import { CreateBookingComponent } from '../../../booking/create-booking/create-booking.component';
 
 @Component({
   selector: 'app-place-detail',
   templateUrl: './place-detail.page.html',
-  styleUrls: ['./place-detail.page.scss'],
+  styleUrls: ['./place-detail.page.scss']
 })
-export class PlaceDetailPage implements OnInit {
+export class PlaceDetailPage implements OnInit, OnDestroy {
   place: Place;
+  private placeSub: Subscription;
 
-  constructor(private route: ActivatedRoute,
-              private navCtrl: NavController,
-              private placesService: PlacesService,
-              private modalCtrl: ModalController,
-              private actionSheetCtrl: ActionSheetController
+  constructor(
+    private navCtrl: NavController,
+    private route: ActivatedRoute,
+    private placesService: PlacesService,
+    private modalCtrl: ModalController,
+    private actionSheetCtrl: ActionSheetController
   ) {}
 
   ngOnInit() {
@@ -26,7 +34,11 @@ export class PlaceDetailPage implements OnInit {
         this.navCtrl.navigateBack('/places/tabs/discover');
         return;
       }
-      this.place = this.placesService.getPlace(paramMap.get('placeId'));
+      this.placeSub = this.placesService
+        .getPlace(paramMap.get('placeId'))
+        .subscribe(place => {
+          this.place = place;
+        });
     });
   }
 
@@ -59,22 +71,6 @@ export class PlaceDetailPage implements OnInit {
       .then(actionSheetEl => {
         actionSheetEl.present();
       });
-
-    // this.modalCtrl
-    //   .create({
-    //     component: CreateBookingComponent,
-    //     componentProps: { selectedPlace: this.place }
-    //   })
-    //   .then(modalEl => {
-    //     modalEl.present();
-    //     return modalEl.onDidDismiss();
-    //   })
-    //   .then(resultData => {
-    //     console.log(resultData.data, resultData.role);
-    //     if (resultData.role === 'confirm') {
-    //       console.log('BOOKED!');
-    //     }
-    //   });
   }
 
   openBookingModal(mode: 'select' | 'random') {
@@ -95,4 +91,11 @@ export class PlaceDetailPage implements OnInit {
         }
       });
   }
+
+  ngOnDestroy() {
+    if (this.placeSub) {
+      this.placeSub.unsubscribe();
+    }
+  }
 }
+
