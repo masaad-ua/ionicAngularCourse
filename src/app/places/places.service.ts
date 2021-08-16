@@ -8,7 +8,7 @@ import { AuthService } from '../auth/auth.service';
 @Injectable({
   providedIn: 'root'
 })
-export class  PlacesService {
+export class PlacesService {
   private _places = new BehaviorSubject<Place[]>([
     new Place(
       'p1',
