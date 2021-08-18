@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { take, map, tap, delay } from 'rxjs/operators';
+import {take, map, tap, delay, switchMap} from 'rxjs/operators';
 
 import { Place } from './place.model';
 import { AuthService } from '../auth/auth.service';
+import {HttpClient} from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -22,7 +23,7 @@ export class PlacesService {
     ),
     new Place(
       'p2',
-      "L'Amour Toujours",
+      'L\'Amour Toujours',
       'A romantic place in Paris!',
       'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Paris_Night.jpg/1024px-Paris_Night.jpg',
       189.99,
@@ -46,14 +47,12 @@ export class PlacesService {
     return this._places.asObservable();
   }
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private http: HttpClient) {}
 
   getPlace(id: string) {
     return this.places.pipe(
       take(1),
-      map(places => {
-        return { ...places.find(p => p.id === id) };
-      })
+      map(places => ({ ...places.find(p => p.id === id) }))
     );
   }
 
@@ -64,6 +63,7 @@ export class PlacesService {
     dateFrom: Date,
     dateTo: Date
   ) {
+    let generatedId: string;
     const newPlace = new Place(
       Math.random().toString(),
       title,
@@ -74,13 +74,32 @@ export class PlacesService {
       dateTo,
       this.authService.userId
     );
-    return this.places.pipe(
-      take(1),
-      delay(1000),
-      tap(places => {
-        this._places.next(places.concat(newPlace));
-      })
-    );
+    return this.http
+      .post<{ name: string }>(
+        'https://ionic-angular-course-70bcb-default-rtdb.europe-west1.firebasedatabase.app/offered-places.json  ',
+        {
+          ...newPlace,
+          id: null
+        }
+      )
+      .pipe(
+        switchMap(resData => {
+          generatedId = resData.name;
+          return this.places;
+        }),
+        take(1),
+        tap(places => {
+          newPlace.id = generatedId;
+          this._places.next(places.concat(newPlace));
+        })
+      );
+    // return this.places.pipe(
+    //   take(1),
+    //   delay(1000),
+    //   tap(places => {
+    //     this._places.next(places.concat(newPlace));
+    //   })
+    // );
   }
 
   updatePlace(placeId: string, title: string, description: string) {
