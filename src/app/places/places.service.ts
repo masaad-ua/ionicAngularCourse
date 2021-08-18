@@ -95,10 +95,24 @@ export class PlacesService {
   constructor(private authService: AuthService, private http: HttpClient) {}
 
   getPlace(id: string) {
-    return this.places.pipe(
-      take(1),
-      map(places => ({ ...places.find(p => p.id === id) }))
-    );
+    return this.http
+      .get<PlaceData>(
+        `https://ionic-angular-course-70bcb-default-rtdb.europe-west1.firebasedatabase.app/offered-places/${id}.json`
+      )
+      .pipe(
+        map(placeData => {
+          return new Place(
+            id,
+            placeData.title,
+            placeData.description,
+            placeData.imageUrl,
+            placeData.price,
+            new Date(placeData.availableFrom),
+            new Date(placeData.availableTo),
+            placeData.userId
+          );
+        })
+      );
   }
 
   addPlace(
