@@ -8,10 +8,11 @@ import { Booking } from './booking.model';
 @Component({
   selector: 'app-booking',
   templateUrl: './booking.page.html',
-  styleUrls: ['./booking.page.scss'],
+  styleUrls: ['./booking.page.scss']
 })
 export class BookingPage implements OnInit, OnDestroy {
   loadedBookings: Booking[];
+  isLoading = false;
   private bookingSub: Subscription;
 
   constructor(
@@ -20,8 +21,15 @@ export class BookingPage implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.bookingService.bookings.subscribe(bookings => {
+    this.bookingSub = this.bookingService.bookings.subscribe(bookings => {
       this.loadedBookings = bookings;
+    });
+  }
+
+  ionViewWillEnter() {
+    this.isLoading = true;
+    this.bookingService.fetchBookings().subscribe(() => {
+      this.isLoading = false;
     });
   }
 
