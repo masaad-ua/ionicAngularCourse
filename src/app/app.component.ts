@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
 import {Platform} from '@ionic/angular';
-import {AuthService} from "./auth/auth.service";
-import {Router} from "@angular/router";
+import {AuthService} from './auth/auth.service';
+import {Router} from '@angular/router';
+import { Capacitor} from '@capacitor/core';
+import { SplashScreen} from '@capacitor/splash-screen';
 //import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 //import { StatusBar } from '@ionic-native/status-bar/ngx';
 
@@ -24,6 +26,9 @@ export class AppComponent {
 
   initializeApp() {
     this.platform.ready().then(() => {
+      if(Capacitor.isPluginAvailable('SplashScreen')){
+        SplashScreen.hide();
+      }
       //this.statusBar.styleDefault();
       //this.splashScreen.hide();
     });
