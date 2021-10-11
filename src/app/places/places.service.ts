@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import {BehaviorSubject, of} from 'rxjs';
-import {take, map, tap, delay, switchMap} from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, of } from 'rxjs';
+import { take, map, tap, delay, switchMap } from 'rxjs/operators';
 
 import { Place } from './place.model';
 import { AuthService } from '../auth/auth.service';
-import {HttpClient} from '@angular/common/http';
+import { PlaceLocation } from './location.model';
 
 // [
 //   new Place(
@@ -47,6 +48,7 @@ interface PlaceData {
   price: number;
   title: string;
   userId: string;
+  location: PlaceLocation;
 }
 
 @Injectable({
@@ -55,10 +57,16 @@ interface PlaceData {
 export class PlacesService {
   private _places = new BehaviorSubject<Place[]>([]);
 
+  get places() {
+    return this._places.asObservable();
+  }
+
+  constructor(private authService: AuthService, private http: HttpClient) {}
+
   fetchPlaces() {
     return this.http
       .get<{ [key: string]: PlaceData }>(
-        'https://ionic-angular-course-70bcb-default-rtdb.europe-west1.firebasedatabase.app/offered-places.json '
+        'https://ionic-angular-course.firebaseio.com/offered-places.json'
       )
       .pipe(
         map(resData => {
@@ -74,7 +82,8 @@ export class PlacesService {
                   resData[key].price,
                   new Date(resData[key].availableFrom),
                   new Date(resData[key].availableTo),
-                  resData[key].userId
+                  resData[key].userId,
+                  resData[key].location
                 )
               );
             }
@@ -88,16 +97,10 @@ export class PlacesService {
       );
   }
 
-  get places() {
-    return this._places.asObservable();
-  }
-
-  constructor(private authService: AuthService, private http: HttpClient) {}
-
   getPlace(id: string) {
     return this.http
       .get<PlaceData>(
-        `https://ionic-angular-course-70bcb-default-rtdb.europe-west1.firebasedatabase.app/offered-places/${id}.json`
+        `https://ionic-angular-course.firebaseio.com/offered-places/${id}.json`
       )
       .pipe(
         map(placeData => {
@@ -109,7 +112,8 @@ export class PlacesService {
             placeData.price,
             new Date(placeData.availableFrom),
             new Date(placeData.availableTo),
-            placeData.userId
+            placeData.userId,
+            placeData.location
           );
         })
       );
@@ -120,7 +124,8 @@ export class PlacesService {
     description: string,
     price: number,
     dateFrom: Date,
-    dateTo: Date
+    dateTo: Date,
+    location: PlaceLocation
   ) {
     let generatedId: string;
     const newPlace = new Place(
@@ -131,11 +136,12 @@ export class PlacesService {
       price,
       dateFrom,
       dateTo,
-      this.authService.userId
+      this.authService.userId,
+      location
     );
     return this.http
       .post<{ name: string }>(
-        'https://ionic-angular-course-70bcb-default-rtdb.europe-west1.firebasedatabase.app/offered-places.json ',
+        'https://ionic-angular-course.firebaseio.com/offered-places.json',
         {
           ...newPlace,
           id: null
@@ -184,10 +190,11 @@ export class PlacesService {
           oldPlace.price,
           oldPlace.availableFrom,
           oldPlace.availableTo,
-          oldPlace.userId
+          oldPlace.userId,
+          oldPlace.location
         );
         return this.http.put(
-          `https://ionic-angular-course-70bcb-default-rtdb.europe-west1.firebasedatabase.app/offered-places/${placeId}.json`,
+          `https://ionic-angular-course.firebaseio.com/offered-places/${placeId}.json`,
           { ...updatedPlaces[updatedPlaceIndex], id: null }
         );
       }),

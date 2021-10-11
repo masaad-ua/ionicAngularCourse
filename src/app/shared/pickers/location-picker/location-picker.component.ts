@@ -7,7 +7,9 @@ import {
 import { HttpClient } from '@angular/common/http';
 import { map, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { Plugins, Capacitor } from '@capacitor/core';
+import { Capacitor } from '@capacitor/core';
+import { Geolocation } from '@capacitor/geolocation';
+
 
 import { MapModalComponent } from '../../map-modal/map-modal.component';
 import { environment } from '../../../../environments/environment';
@@ -63,7 +65,7 @@ export class LocationPickerComponent implements OnInit {
       return;
     }
     this.isLoading = true;
-    Plugins.Geolocation.getCurrentPosition()
+    Geolocation.getCurrentPosition()
       .then(geoPosition => {
         const coordinates: Coordinates = {
           lat: geoPosition.coords.latitude,
