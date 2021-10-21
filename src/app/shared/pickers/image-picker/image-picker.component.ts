@@ -4,7 +4,7 @@ import {
   Output,
   EventEmitter,
   ViewChild,
-  ElementRef
+  ElementRef, Input
 } from '@angular/core';
 import {
   Capacitor,
@@ -20,6 +20,7 @@ import {Camera, CameraSource, CameraResultType} from '@capacitor/camera';
 export class ImagePickerComponent implements OnInit {
   @ViewChild('filePicker', { static: false }) filePickerRef: ElementRef<HTMLInputElement>;
   @Output() imagePick = new EventEmitter<string | File>();
+  @Input() showPreview = false;
   selectedImage: string;
   usePicker = false;
 
