@@ -97,39 +97,49 @@ export class BookingService {
       );
   }
 
+  //`https://ionic-angular-course.firebaseio.com/bookings.json?orderBy="userId"&equalTo="${this.authService.userId}"`
   fetchBookings() {
-    return this.http
-      .get<{ [key: string]: BookingData }>(
-        `https://ionic-angular-course.firebaseio.com/bookings.json?orderBy="userId"&equalTo="${
-          this.authService.userId
-        }"`
-      )
-      .pipe(
-        map(bookingData => {
-          const bookings = [];
-          for (const key in bookingData) {
-            if (bookingData.hasOwnProperty(key)) {
-              bookings.push(
-                new Booking(
-                  key,
-                  bookingData[key].placeId,
-                  bookingData[key].userId,
-                  bookingData[key].placeTitle,
-                  bookingData[key].placeImage,
-                  bookingData[key].firstName,
-                  bookingData[key].lastName,
-                  bookingData[key].guestNumber,
-                  new Date(bookingData[key].bookedFrom),
-                  new Date(bookingData[key].bookedTo)
-                )
-              );
-            }
+    let fetchedUserId: string;
+    return this.authService.userId.pipe(
+      take(1),
+      switchMap(userId => {
+        if (!userId) {
+          throw new Error('User not found!');
+        }
+        fetchedUserId = userId;
+        return this.authService.token;
+      }),
+      take(1),
+      switchMap(token => {
+        return this.http.get<{ [key: string]: BookingData }>(
+          `https://ionic-angular-course.firebaseio.com/bookings.json?orderBy="userId"&equalTo="${this.authService.userId}"&auth=${token}`
+        );
+      }),
+      map(bookingData => {
+        const bookings = [];
+        for (const key in bookingData) {
+          if (bookingData.hasOwnProperty(key)) {
+            bookings.push(
+              new Booking(
+                key,
+                bookingData[key].placeId,
+                bookingData[key].userId,
+                bookingData[key].placeTitle,
+                bookingData[key].placeImage,
+                bookingData[key].firstName,
+                bookingData[key].lastName,
+                bookingData[key].guestNumber,
+                new Date(bookingData[key].bookedFrom),
+                new Date(bookingData[key].bookedTo)
+              )
+            );
           }
-          return bookings;
-        }),
-        tap(bookings => {
-          this._bookings.next(bookings);
-        })
-      );
+        }
+        return bookings;
+      }),
+      tap(bookings => {
+        this._bookings.next(bookings);
+      })
+    );
   }
 }
