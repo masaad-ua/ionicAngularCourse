@@ -45,7 +45,7 @@ export class DiscoverPage implements OnInit, OnDestroy {
     this.menuCtrl.toggle();
   }
 
-  onFilterUpdate(event: CustomEvent<SegmentChangeEventDetail>) {
+  onFilterUpdate(event: CustomEvent<SegmentChangeEventDetail> | any) {
     this.authService.userId.pipe(take(1)).subscribe(userId => {
       if (event.detail.value === 'all') {
         this.relevantPlaces = this.loadedPlaces;

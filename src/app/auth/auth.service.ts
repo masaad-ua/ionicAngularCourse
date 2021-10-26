@@ -123,7 +123,7 @@ export class AuthService implements OnDestroy {
       clearTimeout(this.activeLogoutTimer);
     }
     this._user.next(null);
-    Plugins.Storage.remove({ key: 'authData' });
+    Storage.remove({ key: 'authData' });
   }
 
   ngOnDestroy() {
